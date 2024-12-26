@@ -31,37 +31,53 @@ const getJoyas = async (limit = 10, order_by = 'id_ASC', page = 1) => {
 }
 
 
-
-const getJoyasFiltradas = async ({ stock_min, precio_max }) => { 
-    try{
-        const  SQLQuery = manejarJoyasFiltradas (stock_min, precio_max)  //array para guardar la cantidad de filtros a entregar
-        const { rows, rowCount } = await DB.query(consulta)
+const getJoyasFiltradas = async (precio_min, precio_max, categoria, metal) => { 
+    try {
+        
+        const consulta = manejarJoyasFiltradas(precio_min, precio_max, categoria, metal);
+        
+       
+        const { rows, rowCount } = await DB.query(consulta.query, consulta.values);
         return {
             rows, 
-            rowCount, 
-            pages: Math.ceil (count / limit)
-        }
-    }catch (error) {
-        throw error
+            rowCount
+        };
+    } catch (error) {
+        throw error;
     }
-}
+};
 
-const manejarJoyasFiltradas = ( stock_min ='', precio_max = '') => { //funcion para detectar que filtros entregar 
-        let filtros = []
-        if (precio_max) filtros.push(`precio <= ${precio_max}`)
-        if (stock_min) filtros.push(`stock >= ${stock_min}`)
 
-        let consulta = "SELECT * FROM inventario"
 
-        if (filtros.length) {
-            filtros = filtros.join(" AND ")
-            consulta += ` WHERE ${filtros}`
-        }
-        return consulta
-}
-       
-    
+const manejarJoyasFiltradas = (precio_min = '', precio_max = '', categoria = '', metal = '') => {
+    let filtros = [];
+    let values = [];
+    let query = "SELECT * FROM inventario";
 
+    // Agregar filtros a la consulta
+    if (precio_max) {
+        filtros.push("precio <= $1");
+        values.push(precio_max);
+    }
+    if (precio_min) {
+        filtros.push("precio >= $2");
+        values.push(precio_min);
+    }
+    if (categoria) {
+        filtros.push("categoria ILIKE $3");
+        values.push(`%${categoria}%`);
+    }
+    if (metal) {
+        filtros.push("metal ILIKE $4");
+        values.push(`%${metal}%`);
+    }
+
+    if (filtros.length) {
+        query += " WHERE " + filtros.join(" AND ");
+    }
+
+    return { query, values };
+};
 
 
 

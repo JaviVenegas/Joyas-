@@ -12,6 +12,8 @@ const handleGetJoyas = async (req, res, next) => {
         next (error)
     }
 };
+
+
 const handleGetJoyasFiltradas = async (req, res, next) => {
     try{
         const {precio_min, precio_max, categoria, metal} = req.query
